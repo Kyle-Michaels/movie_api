@@ -1,49 +1,83 @@
 const express = require('express'),
-    morgan = require('morgan');
+    app = express(),
+    morgan = require('morgan'),
+    bodyParser = require('body-parser'),
+    uuid = require('uuid');
 
-const app = express();
+let users = [
+    {
+        id: 1,
+        name: 'Kyle',
+        favoriteMovies: []
+    },
+    {
+        id: 2,
+        name: 'Alyssa',
+        favoriteMovies: []
+    },
+];
 
-let topMovies = [
+let movies = [
     {
-        title: 'Harry Potter and the Sorcerer\'s Stone',
-        director: 'Chris Columbus'
+        'Title': 'Harry Potter and the Sorcerer\'s Stone',
+        'Director': {
+            'Name': 'Chris Columbus',
+            'Bio': '...',
+            'Birth': '09.10.1958'
+        },
+        'Genre': {
+            'Name': 'Fantasy',
+            'Description': 'Fantasy films are films that belong to the fantasy genre with fantastic themes, usually magic, supernatural events, mythology, folklore, or exotic fantasy worlds.'
+        }
     },
     {
-        title: 'Lord of the Rings: The fellowship of the Ring',
-        director: 'Peter Jackson'
+        'Title': 'Lord of the Rings: The fellowship of the Ring',
+        'Director': {
+            'Name': 'Peter Jackson',
+            'Bio': '...',
+            'Birth': '10.31.1961'
+        },
+        'Genre': {
+            'Name': 'Fantasy',
+            'Description': 'Fantasy films are films that belong to the fantasy genre with fantastic themes, usually magic, supernatural events, mythology, folklore, or exotic fantasy worlds.'
+        }
     },
     {
-        title: 'Twilight',
-        director: 'Catherine Hardwicke'
+        'Title': 'Twilight',
+        'Director': {
+            'Name': 'Katheryn Hardwick',
+            'Bio': '...',
+            'Birth': '10.21.1955'
+        },
+        'Genre': {
+            'Name': 'Drama',
+            'Description': 'In film and television, drama is a category or genre of narrative fiction (or semi-fiction) intended to be more serious than humorous in tone.'
+        }
     },
     {
-        title: 'The Shawshank Redemption',
-        director: 'Frank Darabont'
+        'Title': 'The Shawshank Redemption',
+        'Director': {
+            'Name': 'Frank Darabont',
+            'Bio': '...',
+            'Birth': '01.28.1959'
+        },
+        'Genre': {
+            'Name': 'Drama',
+            'Description': 'In film and television, drama is a category or genre of narrative fiction (or semi-fiction) intended to be more serious than humorous in tone.'
+        }
     },
     {
-        title: 'The Godfather',
-        director: 'Francis Ford Coppola'
+        'Title': 'The Godfather',
+        'Director': {
+            'Name': 'Francis Ford Coppola',
+            'Bio': '...',
+            'Birth': '04.07.1939'
+        },
+        'Genre': {
+            'Name': 'Crime',
+            'Description': 'Crime fiction, detective story, murder mystery, mystery novel, and police novel are terms used to describe narratives that centre on criminal acts and especially on the investigation, either by an amateur or a professional detective, of a crime, often a murder.'
+        }
     },
-    {
-        title: 'The Dark Knight',
-        director: 'Christopher Noland'
-    },
-    {
-        title: 'The Godfather Part II',
-        director: 'Francis Ford Coppola'
-    },
-    {
-        title: '12 Angry Men',
-        director: 'Sidney Lumet'
-    },
-    {
-        title: 'Schindler\'s List',
-        director: 'Steven Spielberg'
-    },
-    {
-        title: 'The Lord of the Rings: The Return of the King',
-        director: 'Peter Jackson'
-    }
 ];
 
 
@@ -52,6 +86,7 @@ let topMovies = [
 
 app.use(morgan('common'));
 app.use(express.static('public'));
+app.use(bodyParser.json());
 
 
 // GET requests
@@ -61,10 +96,134 @@ app.get('/', (req, res) => {
     res.send(responseText);
 });
 
+
+// READ All movies 
+
 app.get('/movies', (req, res) => {
-    res.json(topMovies);
+    res.status(200).json(movies);
 });
 
+
+// READ Info about single movie
+
+app.get('/movies/:title', (req, res) => {
+    const { title } = req.params;
+    const movie = movies.find( movie => movie.Title.toLowerCase() === title.toLowerCase())
+
+    if (movie) {
+        return res.status(200).json(movie);
+    } else {
+        return res.status(400).send('No movie found')
+    }
+});
+
+
+// READ Info about a genre
+
+app.get('/movies/genre/:genreName', (req, res) => {
+    const { genreName } = req.params;
+    const genre = movies.find( movie => movie.Genre.Name.toLowerCase() === genreName.toLowerCase()).Genre;
+
+    if (genre) {
+        return res.status(200).json(genre);
+    } else {
+        return res.status(400).send('No genre found')
+    }
+});
+
+
+// READ Info about a genre
+
+app.get('/movies/directors/:directorName', (req, res) => {
+    const { directorName } = req.params;
+    const director = movies.find( movie => movie.Director.Name.toLowerCase() === directorName.toLowerCase()).Director;
+
+    if (director) {
+        return res.status(200).json(director);
+    } else {
+        return res.status(400).send('No director found');
+    }
+});
+
+
+// CREATE register a user
+
+app.post('/users', (req, res) => {
+    const newUser = req.body;
+
+    if(newUser.name) {
+        newUser.id = uuid.v4();
+        users.push(newUser);
+        res.status(201).send(newUser);
+    } else {
+        res.status(400).send('Missing name in request body');
+    }
+}); 
+
+
+// UPDATE a user by name
+
+app.put('/users/:id', (req, res) => {
+    const { id } = req.params;
+    const updatedUser = req.body;
+
+    let user = users.find( user => user.id == id );
+
+    if (user) {
+        user.name = updatedUser.name;
+        res.status(200).json(user);
+    } else {
+        res.status(400).send('user not found');
+    }
+}); 
+
+
+// CREATE add movie to favoriteMovies list
+
+app.post('/users/:id/:movieTitle', (req, res) => {
+    const { id,  movieTitle } = req.params;
+
+    let user = users.find( user => user.id == id );
+
+    if (user) {
+        user.favoriteMovies.push(movieTitle);
+        res.status(200).send(movieTitle + ' has been added to user ' + id + '\'s array');
+    } else {
+        res.status(400).send('user or movie not found');
+    }
+})
+
+
+// DELETE remove movie to favoriteMovies list
+
+app.delete('/users/:id/:movieTitle', (req, res) => {
+    const { id,  movieTitle } = req.params;
+
+    let user = users.find( user => user.id == id );
+
+    if (user) {
+        user.favoriteMovies = user.favoriteMovies.filter( title => title !== movieTitle);
+        res.status(200).send(movieTitle + ' has been removed from user ' + id + '\'s array');
+    } else {
+        res.status(400).send('user or movie not found');
+    }
+})
+
+
+// DELETE remove user from users list
+
+app.delete('/users/:id', (req, res) => {
+    const { id } = req.params;
+
+    let user = users.find( user => user.id == id );
+
+    if (user) {
+        users = users.filter( user => user.id != id);
+        res.status(200).send('user ' + id + ' has been deleted');
+    } else {
+        res.status(400).send('user not found');
+    }
+})
 
 // error handling
 
