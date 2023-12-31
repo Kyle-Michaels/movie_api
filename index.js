@@ -1,92 +1,23 @@
 const express = require('express'),
-    app = express(),
     morgan = require('morgan'),
     bodyParser = require('body-parser'),
-    uuid = require('uuid');
+    uuid = require('uuid'),
+    mongoose = require('mongoose'),
+    Models = require('./models.js'),
 
-let users = [
-    {
-        id: 1,
-        name: 'Kyle',
-        favoriteMovies: []
-    },
-    {
-        id: 2,
-        name: 'Alyssa',
-        favoriteMovies: []
-    },
-];
+    Movies = Models.Movie,
+    Users = Models.User,
+    app = express();
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
 
-let movies = [
-    {
-        'Title': 'Harry Potter and the Sorcerer\'s Stone',
-        'Director': {
-            'Name': 'Chris Columbus',
-            'Bio': '...',
-            'Birth': '09.10.1958'
-        },
-        'Genre': {
-            'Name': 'Fantasy',
-            'Description': 'Fantasy films are films that belong to the fantasy genre with fantastic themes, usually magic, supernatural events, mythology, folklore, or exotic fantasy worlds.'
-        }
-    },
-    {
-        'Title': 'Lord of the Rings: The fellowship of the Ring',
-        'Director': {
-            'Name': 'Peter Jackson',
-            'Bio': '...',
-            'Birth': '10.31.1961'
-        },
-        'Genre': {
-            'Name': 'Fantasy',
-            'Description': 'Fantasy films are films that belong to the fantasy genre with fantastic themes, usually magic, supernatural events, mythology, folklore, or exotic fantasy worlds.'
-        }
-    },
-    {
-        'Title': 'Twilight',
-        'Director': {
-            'Name': 'Katheryn Hardwick',
-            'Bio': '...',
-            'Birth': '10.21.1955'
-        },
-        'Genre': {
-            'Name': 'Drama',
-            'Description': 'In film and television, drama is a category or genre of narrative fiction (or semi-fiction) intended to be more serious than humorous in tone.'
-        }
-    },
-    {
-        'Title': 'The Shawshank Redemption',
-        'Director': {
-            'Name': 'Frank Darabont',
-            'Bio': '...',
-            'Birth': '01.28.1959'
-        },
-        'Genre': {
-            'Name': 'Drama',
-            'Description': 'In film and television, drama is a category or genre of narrative fiction (or semi-fiction) intended to be more serious than humorous in tone.'
-        }
-    },
-    {
-        'Title': 'The Godfather',
-        'Director': {
-            'Name': 'Francis Ford Coppola',
-            'Bio': '...',
-            'Birth': '04.07.1939'
-        },
-        'Genre': {
-            'Name': 'Crime',
-            'Description': 'Crime fiction, detective story, murder mystery, mystery novel, and police novel are terms used to describe narratives that centre on criminal acts and especially on the investigation, either by an amateur or a professional detective, of a crime, often a murder.'
-        }
-    },
-];
-
+mongoose.connect('mongodb://localhost:27017/myFlix', { useNewUrlParser: true, useUnifiedTopology: true })
 
 // Use functions for all requests (Middleware functions)
 // Order for middleware functions 1.logging 2.user authentication 3.app routing
 
 app.use(morgan('common'));
 app.use(express.static('public'));
-app.use(bodyParser.json());
 
 
 // GET requests
@@ -148,66 +79,178 @@ app.get('/movies/directors/:directorName', (req, res) => {
 
 // CREATE register a user
 
-app.post('/users', (req, res) => {
-    const newUser = req.body;
+// app.post('/users', (req, res) => {
+//     const newUser = req.body;
 
-    if(newUser.name) {
-        newUser.id = uuid.v4();
-        users.push(newUser);
-        res.status(201).send(newUser);
-    } else {
-        res.status(400).send('Missing name in request body');
-    }
-}); 
+//     if(newUser.name) {
+//         newUser.id = uuid.v4();
+//         users.push(newUser);
+//         res.status(201).send(newUser);
+//     } else {
+//         res.status(400).send('Missing name in request body');
+//     }
+// }); 
+
+// NEW CREATE register a user
+
+app.post('/users', async (req, res) => {
+    await Users.findOne({ Username: req.body.Username })
+    .then((user) => {
+        if (user) {
+            return res.status(400).send(req.body.Username +  'already exists');
+        } else {
+            Users
+                .create({
+                    Username: req.body.Username,
+                    Password: req.body.Password,
+                    Email: req.body.Email,
+                    Birthday: req.body.Birthday
+                })
+                .then((user) => { res.status(201).json(user) })
+            .catch((error) => {
+                console.error(error);
+                res.status(500).send('Error: ' + error);
+            })
+        }
+    })
+    .catch((error) => {
+        console.error(error);
+        res.status(500).send('Error: ' + error);
+    });
+});
+
+
+// GET all users
+
+app.get('/users', async (req, res) => {
+    await Users.find()
+    .then((users) => {
+        res.status(201).json(users);
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    });
+});
+
+
+// GET a user by username
+
+app.get('/users/:Username', async (req, res) => {
+    await Users.findOne({ Username: req.params.Username })
+    .then((user) => {
+        res.json(user);
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    });
+});
 
 
 // UPDATE a user by name
 
-app.put('/users/:id', (req, res) => {
-    const { id } = req.params;
-    const updatedUser = req.body;
+// app.put('/users/:id', (req, res) => {
+//     const { id } = req.params;
+//     const updatedUser = req.body;
 
-    let user = users.find( user => user.id == id );
+//     let user = users.find( user => user.id == id );
 
-    if (user) {
-        user.name = updatedUser.name;
-        res.status(200).json(user);
-    } else {
-        res.status(400).send('user not found');
-    }
-}); 
+//     if (user) {
+//         user.name = updatedUser.name;
+//         res.status(200).json(user);
+//     } else {
+//         res.status(400).send('user not found');
+//     }
+// }); 
 
+
+// NEW UPDATE a user by username
+
+app.put('/users/:Username', async (req, res) => {
+    await Users.findOneAndUpdate({ Username: req.params.Username },
+    { $set:
+        {
+            Username: req.body.Username,
+            Password: req.body.Password,
+            Email: req.body.Email,
+            Birthday: req.body.Birthday
+        }
+    },
+    { new: true })
+    .then((updatedUser) => {
+        res.json(updatedUser);
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    })
+})
 
 // CREATE add movie to favoriteMovies list
 
-app.post('/users/:id/:movieTitle', (req, res) => {
-    const { id,  movieTitle } = req.params;
+// app.post('/users/:id/:movieTitle', (req, res) => {
+//     const { id,  movieTitle } = req.params;
 
-    let user = users.find( user => user.id == id );
+//     let user = users.find( user => user.id == id );
 
-    if (user) {
-        user.favoriteMovies.push(movieTitle);
-        res.status(200).send(movieTitle + ' has been added to user ' + id + '\'s array');
-    } else {
-        res.status(400).send('user or movie not found');
-    }
-})
+//     if (user) {
+//         user.favoriteMovies.push(movieTitle);
+//         res.status(200).send(movieTitle + ' has been added to user ' + id + '\'s array');
+//     } else {
+//         res.status(400).send('user or movie not found');
+//     }
+// })
+
+
+// NEW CREATE add movie to favoriteMovies list
+
+app.post('/users/:Username/movies/:MovieID', async (req, res) => {
+    await Users.findOneAndUpdate({ Username: req.params.Username },
+        { $push: { FavoriteMovies: req.params.MovieID }
+    },
+    { new: true })
+    .then((updatedUser) => {
+        res.json(updatedUser);
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    });
+});
 
 
 // DELETE remove movie to favoriteMovies list
 
-app.delete('/users/:id/:movieTitle', (req, res) => {
-    const { id,  movieTitle } = req.params;
+// app.delete('/users/:id/:movieTitle', (req, res) => {
+//     const { id,  movieTitle } = req.params;
 
-    let user = users.find( user => user.id == id );
+//     let user = users.find( user => user.id == id );
 
-    if (user) {
-        user.favoriteMovies = user.favoriteMovies.filter( title => title !== movieTitle);
-        res.status(200).send(movieTitle + ' has been removed from user ' + id + '\'s array');
-    } else {
-        res.status(400).send('user or movie not found');
-    }
-})
+//     if (user) {
+//         user.favoriteMovies = user.favoriteMovies.filter( title => title !== movieTitle);
+//         res.status(200).send(movieTitle + ' has been removed from user ' + id + '\'s array');
+//     } else {
+//         res.status(400).send('user or movie not found');
+//     }
+// })
+
+
+// NEW DELETE remove movie to favoriteMovies list
+
+app.delete('/users/:Username/movies/:MovieID', async (req, res) => {
+    await Users.findOneAndUpdate({ Username: req.params.Username },
+        { $pull: { FavoriteMovies: req.params.MovieID }
+    },
+    { new: true })
+    .then((updatedUser) => {
+        res.json(updatedUser);
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    });
+});
 
 
 // DELETE remove user from users list
