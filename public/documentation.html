@@ -58,27 +58,24 @@
                         <br>
                         <code>
                             {<br>
-                                id: 1,<br>
-                                name: Thriller,<br>
-                                description: ...<br>
+                                Name: Thriller,<br>
+                                Description: ...<br>
                             }
                         </code>
                     </td>
                 </tr>
                 <tr class="row">
                     <td class="col">Return data about a director by name</td>
-                    <td class="col">/movies/director/:name</td>
+                    <td class="col">/movies/directors/:directorName</td>
                     <td class="col">GET</td>
                     <td class="col">None</td>
                     <td class="col">A JSON object holding data about a director
                         <br>
                         <code>
                             {<br>
-                                id: 1,<br>
-                                name: Frank Darabont,<br>
-                                bio: ...,<br>
-                                birthYear: ...,<br>
-                                deathYear: ...<br>
+                                Name: Frank Darabont,<br>
+                                Bio: ...,<br>
+                                Birth: ...,<br>
                             }
                         </code>
                     </td>
@@ -91,46 +88,69 @@
                         <br>
                         <code>
                             {<br>
-                                "name": ...,<br>
-                                "favoriteMovies": []<br>
+                                "Username": ...,<br>
+                                "Password": ...,<br>
+                                "Email": ...,<br>
+                                "Birthday": Date<br>
                             }
                         </code>
                     </td>
                     <td class="col">A JSON object holding data about the user that was added, including an ID:
                         <br>
                         <code>
-                            {
-                                <br>"id": "1",<br>
-                                "name": "...",<br>
-                                "favoriteMovies": []<br>
+                            {<br>
+                                "Username": ...,<br>
+                                "Password": ...,<br>
+                                "Email": ...,<br>
+                                "Birthday": Date<br>
                             }
                         </code>
                     </td>
                 </tr>
                 <tr class="row">
-                    <td class="col">Update user info</td>
-                    <td class="col">/users/:id</td>
+                    <td class="col">Update user info by username</td>
+                    <td class="col">/users/:Username</td>
                     <td class="col">PUT</td>
-                    <td class="col">None</td>
-                    <td class="col">A text message indicating the username has been updated</td>
+                    <td class="col">A JSON object holding data about the user to update, structured like
+                        <br>
+                        <code>
+                            {<br>
+                                "Username": ...,<br>
+                                "Password": ...,<br>
+                                "Email": ...,<br>
+                                "Birthday": Date<br>
+                            }
+                        </code>
+                    </td>
+                    <td class="col">A JSON object holding the updated data about the user, structured like
+                        <br>
+                        <code>
+                            {<br>
+                                "Username": ...,<br>
+                                "Password": ...,<br>
+                                "Email": ...,<br>
+                                "Birthday": Date<br>
+                            }
+                        </code>
+                    </td>
                 </tr>
                 <tr class="row">
-                    <td class="col">Allow users to add a movie to thier list of favorites</td>
-                    <td class="col">/users/:id/:movieTitle</td>
+                    <td class="col">Allow users to add a movie to their list of favorites</td>
+                    <td class="col">/users/:Username/movies/:MovieID</td>
                     <td class="col">POST</td>
                     <td class="col">None</td>
                     <td class="col">A text message indicating that the movie has been added to favorites list</td>
                 </tr>
                 <tr class="row">
                     <td class="col">Allow users to remove a movie from their list of favorites</td>
-                    <td class="col">/users/:id/:movieTitle</td>
+                    <td class="col">/users/:Username/movies/:MovieID</td>
                     <td class="col">DELETE</td>
                     <td class="col">None</td>
                     <td class="col">A text message indicating that the movie has been removed from favorites list</td>
                 </tr>
                 <tr class="row">
                     <td class="col">Allows existing users to deregister</td>
-                    <td class="col">/users/:id</td>
+                    <td class="col">/users/:Username</td>
                     <td class="col">DELETE</td>
                     <td class="col">None</td>
                     <td class="col">A text message indicating that the user has been removed</td>
