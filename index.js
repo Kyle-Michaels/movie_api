@@ -30,10 +30,23 @@ app.get('/', (req, res) => {
 
 // READ All movies 
 
-app.get('/movies', (req, res) => {
-    res.status(200).json(movies);
-});
+// app.get('/movies', (req, res) => {
+//     res.status(200).json(movies);
+// });
 
+
+// NEW READ ALL movies
+
+app.get('/movies', async (req, res) => {
+    await Movies.find()
+    .then((movies) => {
+        res.status(201).json(movies);
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    });
+});
 
 // READ Info about single movie
 
