@@ -78,16 +78,30 @@ app.get('/movies/:Title', async (req, res) => {
 
 // READ Info about a genre
 
-app.get('/movies/genre/:genreName', (req, res) => {
-    const { genreName } = req.params;
-    const genre = movies.find( movie => movie.Genre.Name.toLowerCase() === genreName.toLowerCase()).Genre;
+// app.get('/movies/genre/:genreName', (req, res) => {
+//     const { genreName } = req.params;
+//     const genre = movies.find( movie => movie.Genre.Name.toLowerCase() === genreName.toLowerCase()).Genre;
 
-    if (genre) {
-        return res.status(200).json(genre);
-    } else {
-        return res.status(400).send('No genre found')
-    }
-});
+//     if (genre) {
+//         return res.status(200).json(genre);
+//     } else {
+//         return res.status(400).send('No genre found')
+//     }
+// });
+
+
+// NEW READ info about a genre
+
+app.get('/movies/genre/:genreName', async (req, res) => {
+    await Movies.findOne({ "Genre.Name": req.params.genreName })
+    .then((genre) => {
+        res.status(201).json(genre.Genre);
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    })
+})
 
 
 // READ Info about a director
