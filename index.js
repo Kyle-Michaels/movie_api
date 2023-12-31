@@ -106,16 +106,30 @@ app.get('/movies/genre/:genreName', async (req, res) => {
 
 // READ Info about a director
 
-app.get('/movies/directors/:directorName', (req, res) => {
-    const { directorName } = req.params;
-    const director = movies.find( movie => movie.Director.Name.toLowerCase() === directorName.toLowerCase()).Director;
+// app.get('/movies/directors/:directorName', (req, res) => {
+//     const { directorName } = req.params;
+//     const director = movies.find( movie => movie.Director.Name.toLowerCase() === directorName.toLowerCase()).Director;
 
-    if (director) {
-        return res.status(200).json(director);
-    } else {
-        return res.status(400).send('No director found');
-    }
-});
+//     if (director) {
+//         return res.status(200).json(director);
+//     } else {
+//         return res.status(400).send('No director found');
+//     }
+// });
+
+
+// NEW READ info about a director
+
+app.get('/movies/directors/:directorName', async (req, res) => {
+    await Movies.findOne({ "Director.Name": req.params.directorName })
+    .then((director) => {
+        res.status(201).json(director.Director);
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    })
+})
 
 
 // CREATE register a user
