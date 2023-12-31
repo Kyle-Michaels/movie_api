@@ -63,7 +63,7 @@ app.get('/movies/genre/:genreName', (req, res) => {
 });
 
 
-// READ Info about a genre
+// READ Info about a director
 
 app.get('/movies/directors/:directorName', (req, res) => {
     const { directorName } = req.params;
@@ -116,34 +116,6 @@ app.post('/users', async (req, res) => {
     .catch((error) => {
         console.error(error);
         res.status(500).send('Error: ' + error);
-    });
-});
-
-
-// GET all users
-
-app.get('/users', async (req, res) => {
-    await Users.find()
-    .then((users) => {
-        res.status(201).json(users);
-    })
-    .catch((err) => {
-        console.error(err);
-        res.status(500).send('Error: ' + err);
-    });
-});
-
-
-// GET a user by username
-
-app.get('/users/:Username', async (req, res) => {
-    await Users.findOne({ Username: req.params.Username })
-    .then((user) => {
-        res.json(user);
-    })
-    .catch((err) => {
-        console.error(err);
-        res.status(500).send('Error: ' + err);
     });
 });
 
@@ -255,18 +227,36 @@ app.delete('/users/:Username/movies/:MovieID', async (req, res) => {
 
 // DELETE remove user from users list
 
-app.delete('/users/:id', (req, res) => {
-    const { id } = req.params;
+// app.delete('/users/:id', (req, res) => {
+//     const { id } = req.params;
 
-    let user = users.find( user => user.id == id );
+//     let user = users.find( user => user.id == id );
 
-    if (user) {
-        users = users.filter( user => user.id != id);
-        res.status(200).send('user ' + id + ' has been deleted');
-    } else {
-        res.status(400).send('user not found');
-    }
-})
+//     if (user) {
+//         users = users.filter( user => user.id != id);
+//         res.status(200).send('user ' + id + ' has been deleted');
+//     } else {
+//         res.status(400).send('user not found');
+//     }
+// })
+
+
+// NEW DELETE remove user from user list
+
+app.delete('/users/:Username', async (req, res) => {
+    await Users.findOneAndRemove({ Username: req.params.Username })
+    .then((user) => {
+        if (!user) {
+            res.status(400).send(req.params.Username + ' was not found');
+        } else {
+            res.status(200).send(req.params.Username + ' was deleted.');
+        }
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    });
+});
 
 // error handling
 
