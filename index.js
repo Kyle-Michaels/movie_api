@@ -10,6 +10,9 @@ const express = require('express'),
     app = express();
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
+let auth = require('./auth')(app);
+const passport = require('passport');
+require('./passport');
 
 mongoose.connect('mongodb://localhost:27017/myFlix', { useNewUrlParser: true, useUnifiedTopology: true })
 
@@ -26,7 +29,7 @@ app.get('/', (req, res) => {
 });
 
 // NEW READ ALL movies
-app.get('/movies', async (req, res) => {
+app.get('/movies', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Movies.find()
     .then((movies) => {
         res.status(201).json(movies);
@@ -38,7 +41,7 @@ app.get('/movies', async (req, res) => {
 });
 
 // NEW READ Info about single movie by title
-app.get('/movies/:Title', async (req, res) => {
+app.get('/movies/:Title', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Movies.findOne({ Title: req.params.Title })
     .then((movie) => {
         res.status(201).json(movie);
@@ -50,7 +53,7 @@ app.get('/movies/:Title', async (req, res) => {
 });
 
 // NEW READ info about a genre
-app.get('/movies/genre/:genreName', async (req, res) => {
+app.get('/movies/genre/:genreName', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Movies.findOne({ "Genre.Name": req.params.genreName })
     .then((genre) => {
         res.status(201).json(genre.Genre);
@@ -62,7 +65,7 @@ app.get('/movies/genre/:genreName', async (req, res) => {
 })
 
 // NEW READ info about a director
-app.get('/movies/directors/:directorName', async (req, res) => {
+app.get('/movies/directors/:directorName', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Movies.findOne({ "Director.Name": req.params.directorName })
     .then((director) => {
         res.status(201).json(director.Director);
@@ -101,7 +104,12 @@ app.post('/users', async (req, res) => {
 });
 
 // NEW UPDATE a user by username
-app.put('/users/:Username', async (req, res) => {
+app.put('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    // VERIFY THAT USERNAME THAT REQUESTS TO EDIT IS THE SAME USERNAME
+    if(req.user.Username !== req.params.Username){
+        return res.status(400).send('Permission denied');
+    }
+    // CONDITION ENDS
     await Users.findOneAndUpdate({ Username: req.params.Username },
     { $set:
         {
@@ -122,7 +130,12 @@ app.put('/users/:Username', async (req, res) => {
 })
 
 // NEW CREATE add movie to favoriteMovies list
-app.post('/users/:Username/movies/:MovieID', async (req, res) => {
+app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    // VERIFY THAT USERNAME THAT REQUESTS TO EDIT IS THE SAME USERNAME
+    if(req.user.Username !== req.params.Username){
+        return res.status(400).send('Permission denied');
+    }
+    // CONDITION ENDS
     await Users.findOneAndUpdate({ Username: req.params.Username },
         { $push: { FavoriteMovies: req.params.MovieID }
     },
@@ -137,7 +150,12 @@ app.post('/users/:Username/movies/:MovieID', async (req, res) => {
 });
 
 // NEW DELETE remove movie to favoriteMovies list
-app.delete('/users/:Username/movies/:MovieID', async (req, res) => {
+app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    // VERIFY THAT USERNAME THAT REQUESTS TO EDIT IS THE SAME USERNAME
+    if(req.user.Username !== req.params.Username){
+        return res.status(400).send('Permission denied');
+    }
+    // CONDITION ENDS
     await Users.findOneAndUpdate({ Username: req.params.Username },
         { $pull: { FavoriteMovies: req.params.MovieID }
     },
@@ -152,7 +170,12 @@ app.delete('/users/:Username/movies/:MovieID', async (req, res) => {
 });
 
 // NEW DELETE remove user from user list
-app.delete('/users/:Username', async (req, res) => {
+app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    // VERIFY THAT USERNAME THAT REQUESTS TO EDIT IS THE SAME USERNAME
+    if(req.user.Username !== req.params.Username){
+        return res.status(400).send('Permission denied');
+    }
+    // CONDITION ENDS    
     await Users.findOneAndDelete({ Username: req.params.Username })
     .then((user) => {
         if (!user) {
