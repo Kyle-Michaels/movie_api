@@ -83,7 +83,8 @@ app.get('/movies/directors/:directorName', passport.authenticate('jwt', { sessio
 // NEW CREATE register a user
 app.post('/users',
 [
-    check('Username', 'Username is required').isLength({min: 5}),
+    check('Username', 'Username requires minimum length of 5 characters').isLength({min: 5}),
+    check('Username', 'Username is required.').isEmpty(),
     check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
     check('Password', 'Password is required').not().isEmpty(),
     check('Email', 'Email does not appear to be valid').isEmail()
@@ -98,7 +99,7 @@ async (req, res) => {
     await Users.findOne({ Username: req.body.Username })
     .then((user) => {
         if (user) {
-            return res.status(400).send(req.body.Username +  'already exists');
+            return res.status(400).send(req.body.Username +  ' already exists');
         } else {
             Users
                 .create({
