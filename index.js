@@ -84,7 +84,7 @@ app.get('/movies/directors/:directorName', passport.authenticate('jwt', { sessio
 app.post('/users',
 [
     check('Username', 'Username requires minimum length of 5 characters').isLength({min: 5}),
-    check('Username', 'Username is required.').isEmpty(),
+    check('Username', 'Username is required.').not().isEmpty(),
     check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
     check('Password', 'Password is required').not().isEmpty(),
     check('Email', 'Email does not appear to be valid').isEmail()
