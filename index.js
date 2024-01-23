@@ -11,8 +11,9 @@ const express = require('express'),
     app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 const cors = require('cors');
-let allowedOrigins = ['http://localhost:8080', 'http://localhost:1234', 'https://k-michaels-my-flix.netlify.app'];
+let allowedOrigins = ['http://localhost:1234', 'https://k-michaels-my-flix.netlify.app'];
 
 app.use(cors({
     origin: (origin, callback) => {
@@ -24,6 +25,7 @@ app.use(cors({
         return callback(null, true);
     }
 }));
+
 let auth = require('./auth')(app);
 const passport = require('passport');
 require('./passport');
